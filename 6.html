@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sequential vs Parallel Fetch</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .box {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .seq {
+            background: #ffeeba;
+        }
+
+        .par {
+            background: #c3e6cb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Sequential vs Parallel Fetch</h2>
+
+    <div id="output"></div>
+
+    <script>
+        // URLs
+        const USER_URL = "https://jsonplaceholder.typicode.com/users/1";
+        const POSTS_URL = "https://jsonplaceholder.typicode.com/posts?userId=1";
+        const TODOS_URL = "https://jsonplaceholder.typicode.com/todos?userId=1";
+
+
+        // Sequential Fetch
+        async function fetchSequential() {
+            const start = Date.now();//Records the current timestamp in ms
+
+            const userRes = await fetch(USER_URL);
+            const user = await userRes.json();
+
+            const postsRes = await fetch(POSTS_URL);
+            const posts = await postsRes.json();
+
+            const todosRes = await fetch(TODOS_URL);
+            const todos = await todosRes.json();
+
+            const end = Date.now();
+
+            return {
+                name: user.name,
+                posts: posts.length,
+                todos: todos.length,
+                time: end - start
+            };
+        }
+
+
+        // Parallel Fetch
+        async function fetchParallel() {
+            const start = Date.now();
+
+            const [userRes, postsRes, todosRes] = await Promise.all([// takes an array of Promises and sends them all simultaneously.
+                fetch(USER_URL),
+                fetch(POSTS_URL),
+                fetch(TODOS_URL)
+            ]);
+
+            const [user, posts, todos] = await Promise.all([// parses all 3 response bodies in parallel too.
+                userRes.json(),
+                postsRes.json(),
+                todosRes.json()
+            ]);
+
+            const end = Date.now();
+
+            return {
+                name: user.name,
+                posts: posts.length,
+                todos: todos.length,
+                time: end - start
+            };
+        }
+
+        // Display Results
+        async function run() {
+            const seq = await fetchSequential();
+            const par = await fetchParallel();
+
+            const diff = seq.time - par.time;
+
+            document.getElementById("output").innerHTML = `
+        <div class="box seq">
+            <h3>Sequential</h3>
+            Name: ${seq.name} <br>
+            Posts: ${seq.posts} <br>
+            Todos: ${seq.todos} <br>
+            Time: ${seq.time} ms
+        </div>
+
+        <div class="box par">
+            <h3>Parallel</h3>
+            Name: ${par.name} <br>
+            Posts: ${par.posts} <br>
+            Todos: ${par.todos} <br>
+            Time: ${par.time} ms
+        </div>
+
+        <h3>Parallel was ${diff} ms faster</h3>
+    `;
+        }
+
+        run();
+
+        // Explanation
+
+        /*
+        Use Sequential when requests depend on each other.
+        
+        Example:
+        You need user ID from first API before fetching posts.
+        
+        fetch user -> get user.id -> fetch posts using that ID
+        
+        In this case, parallel is NOT possible.
+        
+        Use Parallel when all requests are independent.
+        */
+
+    </script>
+
+</body>
+
+</html>

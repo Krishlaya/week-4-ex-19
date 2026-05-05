@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Week 4 Exercise</title>
+</head>
+
+<body>
+    <p>WEEK - 4 EX</p>
+
+    <script>
+        // TASK 1
+
+        function double(n) {
+            return n * 2;
+        }
+
+        function sum(a, b, c) {
+            return a + b + c;
+        }
+
+        function greet(name) {
+            return `hello ${name}`;
+        }
+
+        function square(n) {
+            let result = n * n;
+            console.log(result);
+            return result;
+        }
+
+        function getUser() {
+            return {
+                name: "krishlaya",
+                age: 22
+            };
+        }
+
+        function isEven(n) {
+            return n % 2 === 0;
+        }
+
+        function noop() { }
+
+        function log(a, b, c) {
+            console.log(a, b, c);
+        }
+
+        // TASK 2: ARROW FUNCTIONS
+
+        // (a)
+        const doubleA = n => n * 2;
+        // implicit return, single param
+
+        // (b)
+        const sumA = (a, b, c) => a + b + c;
+        // multiple params → ()
+
+
+        // (c)
+        const greetA = name => `hello ${name}`;
+        // template literal + implicit return
+
+        // (d)
+        const squareA = n => {
+            let result = n * n;
+            console.log(result);
+            return result;
+        };
+        // multiple statements → explicit return
+
+        // (e)
+        const getUserA = () => ({ name: "krishlaya", age: 22 });
+        // returning object → ()
+
+        // (f)
+        const isEvenA = n => n % 2 === 0;
+        // shortest form
+
+        // (g)
+        const noopA = () => { };
+        // no params
+
+        // (h)
+        const logA = (a, b, c) => console.log(a, b, c);
+        // single statement → implicit return
+
+        // TASK 3: TEST USING map()
+
+        const inputs = [
+            [5], // double
+            [1, 2, 3], // sum
+            ["Krish"],// greet
+            [4],// square
+            [],// getUser
+            [6],// isEven
+            [],// noop
+            [1, 2, 3]// log
+        ];
+
+        const originalFuncs = [
+            double,
+            sum,
+            greet,
+            square,
+            getUser,
+            isEven,
+            noop,
+            log
+        ];
+
+        const arrowFuncs = [
+            doubleA,
+            sumA,
+            greetA,
+            squareA,
+            getUserA,
+            isEvenA,
+            noopA,
+            logA
+        ];
+
+        console.log("ORIGINAL FUNCTIONS OUTPUT");
+        originalFuncs.map((fn, i) => {
+            const result = fn(...inputs[i]);
+            console.log(result);
+        });
+
+        console.log("\n ARROW FUNCTIONS OUTPUT ");
+        arrowFuncs.map((fn, i) => {
+            const result = fn(...inputs[i]);
+            console.log(result);
+        });
+
+        // TASK 4: HIGHER ORDER FUNCTION
+
+        const makeMultiplier = factor => x => x * factor;
+
+        console.log("\n=== makeMultiplier TEST ===");
+        console.log(makeMultiplier(3)(10)); // 30
+        console.log(makeMultiplier(5)(7));  // 35
+
+    </script>
+</body>
+
+</html>

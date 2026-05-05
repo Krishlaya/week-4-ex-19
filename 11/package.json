@@ -1,0 +1,22 @@
+{
+  "name": "11",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node src/index.js",
+    "lint": "eslint src",
+    "fix": "eslint src --fix",
+    "format": "echo Formatting...",
+    "check": "npm run lint && npm run start",
+    "docs": "node -e \"import('./index.js').then(m=>console.log(Object.keys(m)))\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^10.3.0"
+  }
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        button.remove {
+            background: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Score Entry</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="number" id="score" placeholder="Score (0-9999)">
+    <button onclick="addScore()">Add</button>
+
+    <h3>Search</h3>
+    <input type="text" id="search" placeholder="Search by name">
+
+    <button onclick="clearLeaderboard()">Clear Leaderboard</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard"></tbody>
+    </table>
+
+    <script>
+        function getData() {
+            return JSON.parse(localStorage.getItem("scores")) || [];
+        }
+
+        function saveData(data) {
+            localStorage.setItem("scores", JSON.stringify(data));
+        }
+        function addScore() {
+            const name = document.getElementById("name").value;
+            const score = Number(document.getElementById("score").value);
+
+            if (!name || score < 0 || score > 9999) {
+                alert("Invalid input");
+                return;
+            }
+
+            const data = getData();
+
+            data.push({
+                id: Date.now(),
+                name,
+                score,
+                date: new Date().toLocaleString()
+            });
+
+            saveData(data);
+            render();
+        }
+        function render() {
+            const searchText = document.getElementById("search").value.toLowerCase();
+
+            let data = getData();
+
+            // filter
+            data = data.filter(d => d.name.toLowerCase().includes(searchText));
+
+            // sort descending
+            data.sort((a, b) => b.score - a.score);
+
+            const tbody = document.getElementById("leaderboard");
+            tbody.innerHTML = "";
+
+            data.slice(0, 10).forEach((d, i) => {
+                const row = document.createElement("tr");
+
+                let medal = i === 0 ? "🥇" :
+                    i === 1 ? "🥈" :
+                        i === 2 ? "🥉" : i + 1;
+
+                row.innerHTML = `
+            <td>${medal}</td>
+            <td>${d.name}</td>
+            <td>${d.score}</td>
+            <td>${d.date}</td>
+            <td><button class="remove" onclick="removeItem(${d.id})">Remove</button></td>
+        `;
+
+                tbody.appendChild(row);
+            });
+        }
+        function removeItem(id) {
+            let data = getData();
+            data = data.filter(d => d.id !== id);
+            saveData(data);
+            render();
+        }
+        function clearLeaderboard() {
+            if (confirm("Are you sure?")) {
+                localStorage.removeItem("scores");
+                render();
+            }
+        }
+        let timer;
+        document.getElementById("search").addEventListener("input", () => {
+            clearTimeout(timer);
+            timer = setTimeout(render, 300);
+        });
+        render();
+
+    </script>
+
+</body>
+
+</html>

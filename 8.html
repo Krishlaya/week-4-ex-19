@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Job Application Form</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI';
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #userForm {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.8rem;
+        }
+
+        .banner {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form id="userForm">
+        <div id="banner"></div>
+
+        <h2>Application Form</h2>
+
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="fullName">
+            <div class="error" id="nameError"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="text" id="email">
+            <div class="error" id="emailError"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="phone">
+        </div>
+
+        <div class="form-group">
+            <label>Position</label>
+            <select id="position">
+                <option value="">Select</option>
+                <option>Frontend</option>
+                <option>Backend</option>
+                <option>QA</option>
+                <option>DevOps</option>
+                <option>Data Engineer</option>
+            </select>
+            <div class="error" id="positionError"></div>
+        </div>
+
+        <div class="form-group">
+            <label>Cover Letter</label>
+            <textarea id="coverLetter"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Portfolio URL</label>
+            <input type="text" id="portfolioUrl">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        function autosave() {
+            const data = {
+                fullName: fullName.value,
+                email: email.value,
+                phone: phone.value,
+                position: position.value,
+                coverLetter: coverLetter.value,
+                portfolioUrl: portfolioUrl.value
+            };
+
+            try {
+                sessionStorage.setItem("jobApplicationDraft", JSON.stringify(data));
+            } catch (e) {
+                console.error("Storage error", e);
+            }
+        }
+
+        // attach autosave to all fields
+        document.querySelectorAll("input, textarea, select")
+            .forEach(el => {
+                el.addEventListener("input", autosave);
+                el.addEventListener("change", autosave);
+            });
+
+        window.onload = function () {
+            try {
+                const saved = sessionStorage.getItem("jobApplicationDraft");
+
+                if (saved) {
+                    const data = JSON.parse(saved);
+
+                    fullName.value = data.fullName || "";
+                    email.value = data.email || "";
+                    phone.value = data.phone || "";
+                    position.value = data.position || "";
+                    coverLetter.value = data.coverLetter || "";
+                    portfolioUrl.value = data.portfolioUrl || "";
+
+                    showBanner("Draft restored — your previous work has been saved.");
+                }
+            } catch (e) {
+                console.error("Restore error", e);
+            }
+        };
+
+        userForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // clear errors
+            nameError.textContent = "";
+            emailError.textContent = "";
+            positionError.textContent = "";
+
+            let valid = true;
+
+            if (!fullName.value) {
+                nameError.textContent = "Name is required";
+                valid = false;
+            }
+
+            if (!email.value) {
+                emailError.textContent = "Email is required";
+                valid = false;
+            }
+
+            if (!position.value) {
+                positionError.textContent = "Select a position";
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            // log data
+            console.log({
+                fullName: fullName.value,
+                email: email.value,
+                phone: phone.value,
+                position: position.value,
+                coverLetter: coverLetter.value,
+                portfolioUrl: portfolioUrl.value
+            });
+
+            // clear storage
+            sessionStorage.removeItem("jobApplicationDraft");
+
+            userForm.reset();
+
+            showBanner("Application submitted!");
+        });
+        function showBanner(msg) {
+            banner.textContent = msg;
+            banner.className = "banner success";
+        }
+    </script>
+
+</body>
+
+</html>

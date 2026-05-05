@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Memoize Demo</title>
+</head>
+
+<body>
+    <h2>EX= 4 week 4</h2>
+
+    <script>
+        function memoize(fn, ttl = Infinity) {
+            const cache = new Map();
+            let hits = 0;
+            let misses = 0;
+
+            function memoized(...args) {
+                const key = JSON.stringify(args);//Because Map keys are compared by reference for objects, so we use JSON.stringify to convert them to strings which are compared by value
+                const now = Date.now();
+
+                if (cache.has(key)) {
+                    const entry = cache.get(key);
+
+                    if (now < entry.expiresAt) {
+                        hits++;
+                        return entry.value;
+                    } else {
+                        cache.delete(key); // expired
+                    }
+                }
+
+                // compute result
+                const result = fn(...args);
+                misses++;
+
+                cache.set(key, {
+                    value: result,
+                    expiresAt: now + ttl
+                });
+
+                return result;
+            }
+
+            // stats method
+            memoized.getCacheStats = function () {
+                return {
+                    hits,
+                    misses,
+                    size: cache.size
+                };
+            };
+
+            return memoized;
+        }
+
+
+        // 1. Fibonacci (slow recursive)
+        function fibonacci(n) {
+            if (n <= 1) return n;
+            return fibonacci(n - 1) + fibonacci(n - 2);
+        }
+
+        // 2. Slow function (~500ms delay)
+        function slowFunction(n) {
+            const start = Date.now();
+            while (Date.now() - start < 500) { } // busy wait
+            return n * 2;
+        }
+
+        // 3. Factorial
+        function factorial(n) {
+            if (n === 0) return 1;
+            return n * factorial(n - 1);
+        }
+
+        const memoFib = memoize(fibonacci);
+        const memoSlow = memoize(slowFunction);
+        const memoFact = memoize(factorial, 100); // TTL = 100ms
+
+
+        console.log("Fibonacci");
+        console.time("First fib(35)");
+        console.log(memoFib(35));
+        console.timeEnd("First fib(35)");
+
+        console.time("Second fib(35)");
+        console.log(memoFib(35));
+        console.timeEnd("Second fib(35)");
+
+        console.log("Stats:", memoFib.getCacheStats());
+
+
+        console.log("slow Function");
+        console.time("First slow");
+        console.log(memoSlow(10));
+        console.timeEnd("First slow");
+
+        console.time("Second slow");
+        console.log(memoSlow(10));
+        console.timeEnd("Second slow");
+
+        console.log("Stats:", memoSlow.getCacheStats());
+
+
+        console.log("Factorial with TTL");
+        console.log(memoFact(10)); // first call
+        console.log(memoFact(10)); // cached
+
+        console.log("Stats:", memoFact.getCacheStats());
+
+        // test TTL expiration
+        setTimeout(() => {
+            console.log("After 200ms (TTL expired):");
+            console.log(memoFact(10)); // recomputed
+            console.log("Stats:", memoFact.getCacheStats());
+        }, 200);
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,85 @@
+<html>
+
+<head>
+    <title>Week 4</title>
+</head>
+
+<body>
+    <h1>Week 4</h1>
+    <script>
+        // Debounce = Don’t run a function immediately. Wait until the user stops doing something.
+        function debounce(fn, delay, { leading = false } = {}) {
+            let timer = null;//tracks delay
+            return function (...args) {//returns a function
+                if (timer) clearTimeout(timer);//resets delay if user keeps triggering
+                if (leading && !timer) {
+                    fn.apply(this, args);//runs the function immediately
+                }
+                timer = setTimeout(() => {//sets a delay
+                    if (!leading) fn.apply(this, args);//runs the function after the delay
+                    timer = null;//clears delay after function runs
+                }, delay);
+            }
+        }
+        // Example 1: Resize
+        let resizeTriggered = 0; //resizeTriggered -> every event
+        let resizeExecuted = 0; //resizeExecuted -> debounce call
+
+        const logResize = debounce(() => {
+            resizeExecuted++;
+            document.getElementById("exec").textContent = resizeExecuted;
+        }, 400);
+
+        window.addEventListener("resize", () => {
+            resizeTriggered++;
+            document.getElementById("trigger").textContent = resizeTriggered;
+            logResize();
+        });
+
+        //Example 2: Search autocomplete
+        const input = document.getElementById("search");
+        const result = document.getElementById("result");
+
+        const fetchUsers = debounce(async (value) => {
+            result.textContent = "Fetching...";
+
+            const res = await fetch("https://jsonplaceholder.typicode.com/users");
+            const data = await res.json();
+
+            const filtered = data.filter(user =>
+                user.name.toLowerCase().includes(value.toLowerCase())
+            );
+
+            result.textContent = filtered.map(u => u.name).join(", ");
+        }, 350);
+
+        input.addEventListener("input", (e) => {
+            fetchUsers(e.target.value);
+        });
+
+        //Example 3: Button spam Guard
+        //user clicks button multiple times
+        //not submitting again until 2 seconds pass
+        let seconds = 0;
+        let interval;
+
+        const btn = document.getElementById("btn");
+        const msg = document.getElementById("msg");
+
+        const handleClick = debounce(() => {
+            msg.textContent = "Submitted!";
+
+            seconds = 2;
+            interval = setInterval(() => {
+                msg.textContent = `Wait ${seconds}s before submitting again`;
+                seconds--;
+                if (seconds < 0) clearInterval(interval);
+            }, 1000);
+
+        }, 2000, { leading: true });
+
+        btn.addEventListener("click", handleClick);
+    </script>
+</body>
+
+</html>

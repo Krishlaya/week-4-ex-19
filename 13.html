@@ -1,0 +1,83 @@
+<html>
+
+<head>
+    <title>week 4 ex-13</title>
+</head>
+
+<body>
+    <script>
+        //Debounce -> runs after user stops
+        //Throttle -> runs at a fixed rate while user continues
+        function throttle(fn, interval) {//Runs fn at most once every interval ms
+            let lastTime = 0;//stores last execution time
+
+            return function (...args) {//returns a function
+                const now = Date.now();//current time
+
+                if (now - lastTime >= interval) {//if current time - last time >= interval
+                    lastTime = now;
+                    fn.apply(this, args);
+                }
+            };
+        }
+
+        //TASK 2
+        //Track mouse movement
+        //Update DOM max 10 times/sec (100ms)
+        let mouseEvents = 0;
+        let domUpdates = 0;
+
+        const display = document.getElementById("mouse");
+
+        const updateMouse = throttle((e) => {
+            domUpdates++;
+            display.textContent = `X:${e.clientX}, Y:${e.clientY} | Updates: ${domUpdates}`;
+        }, 100);
+
+        document.addEventListener("mousemove", (e) => {
+            mouseEvents++;
+            updateMouse(e);
+        });
+
+        //TASK 3 
+        //Scenario 2: Infinite Scroll
+
+        const list = document.getElementById("list");
+        const loadMore = throttle(() => {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+                for (let i = 0; i < 5; i++) {
+                    const li = document.createElement("li");
+                    li.textContent = "new item";
+                    list.appendChild(li);
+                }
+            }
+        }, 200);
+
+        window.addEventListener("scroll", loadMore);
+        //TASK 4 — Rate Limiter Class
+        class RateLimiter {
+            constructor(maxCalls, windowMs) {
+                this.maxCalls = maxCalls;
+                this.windowMs = windowMs;
+                this.calls = [];
+            }
+
+            call(fn) {
+                const now = Date.now();
+
+                // remove old calls
+                this.calls = this.calls.filter(time => now - time < this.windowMs);
+
+                if (this.calls.length >= this.maxCalls) {
+                    throw new Error("RateLimitError");
+                }
+
+                this.calls.push(now);
+                return fn();
+            }
+        }
+
+    </script>
+</body>
+
+</html>

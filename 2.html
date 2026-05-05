@@ -1,0 +1,69 @@
+<script>
+    const response = {
+        status: 200,
+        data: {
+            user: {
+                id: 42,
+                name: "priya sharma",
+                role: "admin",
+                address: {
+                    city: "chenni",
+                    country: "india"
+                },
+                skills: ["js", "python", "docker"],
+                lastLogin: null
+            }
+        }
+    };
+
+    const {
+        data: {
+            user: {
+                id,
+                name: username,
+                role,
+                address: { city, country },
+                skills: [skill1, skill2, skill3],
+                lastLogin = "N/A"
+            }
+        }
+    } = response;
+
+    console.log(id, username, city, country, skill1, skill2, skill3, lastLogin);
+
+    function processUser({ id, name, address: { city }, skills: [first, ...rest] }) {
+        return `User #${id} — ${name} — ${city} — Primary: ${first} — Others: ${rest.join(", ")}`;
+    }
+
+    console.log(processUser(response.data.user));
+
+    const updatedUser = {
+        ...response.data.user,
+        lastLogin: new Date().toISOString()
+    };
+
+    console.log("Original:", response.data.user);
+    console.log("Updated:", updatedUser);
+
+    const users = [
+        response.data.user,
+        {
+            id: 43,
+            name: "krish",
+            address: { city: "bihar", country: "India" },
+            skills: ["Java", "C++"],
+            lastLogin: null
+        },
+        {
+            id: 44,
+            name: "nnnnn",
+            address: { city: "aaaa", country: "India" },
+            skills: ["Go", "Rust"],
+            lastLogin: null
+        }
+    ];
+
+    const result = users.map(({ name, address: { city } }) => `${name} (${city})`);
+
+    console.log(result);
+</script>

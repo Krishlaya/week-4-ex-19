@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Fetch with Timeout & Retry</title>
+</head>
+
+<body>
+
+    <h2>Fetch With Timeout & Retry (Check Console)</h2>
+
+    <script>
+        class TimeoutError extends Error {
+            constructor(url, timeout) {
+                super(`Timeout after ${timeout}ms for ${url}`);
+                this.name = "TimeoutError";
+                this.url = url;
+                this.timeout = timeout;
+            }
+        }
+
+        async function fetchWithTimeout(url, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+            try {
+                const res = await fetch(url, { signal: controller.signal });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
+                return res.json();
+
+            } catch (err) {
+                if (err.name === "AbortError") {
+                    throw new TimeoutError(url, timeoutMs);
+                }
+                throw err;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function fetchWithRetry(url, { retries, baseDelay, timeout }) {
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    console.log(`Attempt ${attempt + 1} for ${url}`);
+                    return await fetchWithTimeout(url, timeout);
+
+                } catch (err) {
+
+                    if (err.message.includes("HTTP 4")) {
+                        console.log("4xx error → no retry");
+                        throw err;
+                    }
+                    if (attempt === retries) {
+                        throw err;
+                    }
+                    const delay = baseDelay * Math.pow(2, attempt);
+                    console.log(`Retrying in ${delay} ms...`);
+
+                    await new Promise(res => setTimeout(res, delay));
+                }
+            }
+        }
+        function fetchWithOptions(
+            url,
+            { timeout = 5000, retries = 3, baseDelay = 500 } = {}
+        ) {
+            return fetchWithRetry(url, { retries, baseDelay, timeout });
+        }
+
+        async function runTests() {
+
+            console.log("Normal Request");
+            try {
+                const data = await fetchWithOptions(
+                    "https://jsonplaceholder.typicode.com/posts/1"
+                );
+                console.log("Success:", data);
+            } catch (e) {
+                console.error(e);
+            }
+
+
+            console.log("Timeout Test (1ms)");
+            try {
+                await fetchWithOptions(
+                    "https://jsonplaceholder.typicode.com/posts/1",
+                    { timeout: 1 }
+                );
+            } catch (e) {
+                console.error(e);
+            }
+
+
+            console.log("500 Retry Test");
+            try {
+                await fetchWithOptions(
+                    "https://httpstat.us/500",
+                    { retries: 3, baseDelay: 500, timeout: 3000 }
+                );
+            } catch (e) {
+                console.error("Final error:", e);
+            }
+
+
+            console.log("404 No Retry Test");
+            try {
+                await fetchWithOptions(
+                    "https://httpstat.us/404",
+                    { retries: 3, baseDelay: 500 }
+                );
+            } catch (e) {
+                console.error("No retry error:", e);
+            }
+        }
+
+        runTests();
+
+    </script>
+
+</body>
+
+</html>

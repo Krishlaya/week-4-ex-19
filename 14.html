@@ -1,0 +1,143 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Function Composition Toolkit</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        input,
+        button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        .box {
+            background: white;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🔥 Higher Order Functions Toolkit</h2>
+
+    <div class="box">
+        <h3>Test Results</h3>
+        <p id="composeRes"></p>
+        <p id="pipeRes"></p>
+        <p id="curryRes"></p>
+        <p id="partialRes"></p>
+    </div>
+
+    <div class="box">
+        <h3>💰 Price Calculator (GST + Format)</h3>
+        <input type="number" id="priceInput" placeholder="Enter price" />
+        <button onclick="calculate()">Calculate</button>
+        <p id="priceResult"></p>
+    </div>
+
+    <script>
+        function compose(...fns) {
+            return function (value) {
+                return fns.reduceRight((acc, fn) => fn(acc), value);
+            };
+        }
+
+        function pipe(...fns) {
+            return function (value) {
+                return fns.reduce((acc, fn) => fn(acc), value);
+            };
+        }
+
+        function curry(fn) {
+            return function curried(...args) {
+                if (args.length >= fn.length) {
+                    return fn(...args);
+                }
+                return function (...next) {
+                    return curried(...args, ...next);
+                };
+            };
+        }
+
+        function partial(fn, ...presetArgs) {
+            return function (...laterArgs) {
+                return fn(...presetArgs, ...laterArgs);
+            };
+        }
+        const addOne = x => x + 1;
+        const double = x => x * 2;
+
+        function add(a, b, c) {
+            return a + b + c;
+        }
+
+        function multiply(a, b) {
+            return a * b;
+        }
+
+        // Compose
+        const composeResult = compose(double, addOne)(5);
+
+        // Pipe
+        const pipeResult = pipe(double, addOne)(5);
+
+        // Curry
+        const curriedAdd = curry(add);
+        const curryResult = curriedAdd(1)(2)(3);
+
+        // Partial
+        const triple = partial(multiply, 3);
+        const partialResult = triple(10);
+
+        // Display results
+        document.getElementById("composeRes").textContent =
+            "compose(double, addOne)(5) = " + composeResult;
+
+        document.getElementById("pipeRes").textContent =
+            "pipe(double, addOne)(5) = " + pipeResult;
+
+        document.getElementById("curryRes").textContent =
+            "curry(add)(1)(2)(3) = " + curryResult;
+
+        document.getElementById("partialRes").textContent =
+            "partial(multiply, 3)(10) = " + partialResult;
+
+        const addGST = price => price * 1.18;
+
+        const round = price => Math.round(price * 100) / 100;
+
+        const format = price => "rs" + price.toFixed(2);
+
+        // Build pipeline
+        const finalPrice = pipe(addGST, round, format);
+
+        // Button action
+        function calculate() {
+            const value = parseFloat(document.getElementById("priceInput").value);
+            if (isNaN(value)) {
+                alert("Enter valid number");
+                return;
+            }
+            document.getElementById("priceResult").textContent =
+                "Final Price: " + finalPrice(value);
+        }
+    </script>
+
+</body>
+
+</html>
+```
